@@ -21,22 +21,11 @@ image, and mapped the foreground pixels to rectified image by interpolation acco
 
 - 2022.4.14 update Source file.
 
-
 # Release Code
 The source code is open, please download from Source. 
 
 Please send an email to xieguowang2018@ia.ac.cn.
 
-# Running
-1、Download model parameter and source codes 
-
-2、Resize the input image into 1024x960 (zooming in or out along the longest side and keeping the aspect ration, then filling zero for padding. )  
-
-3、Run `python test.py --data_path_test=./dataset/shrink_1024_960/crop/`
-
-# Training
-Run `python train.py`
-
 # Dataset
-The training dataset can be synthesised using the [scripts](https://github.com/gwxie/Distorted-Image-With-Flow).
+The training dataset can be synthesised using the [scripts](https://github.com/phonhay103/DFE/tree/main/Distorted-Image-With-Flow).
 
