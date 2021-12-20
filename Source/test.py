@@ -11,7 +11,7 @@ import re
 
 import warnings
 from network import ResnetDilatedRgressAndClassifyV2v6v4c1GN
-import utils as utils
+import utils_bg as utils
 
 from dataloader import PerturbedDatastsForRegressAndClassify_pickle_color_v2C1
 
@@ -60,7 +60,7 @@ def train(args):
     if args.resume is not None:
         if os.path.isfile(args.resume):
             print("Loading model and optimizer from checkpoint '{}'".format(args.resume))
-            checkpoint = torch.load(args.resume)
+            checkpoint = torch.load(args.resume, map_location='cuda:0')
             model.load_state_dict(checkpoint['model_state'])
             print("Loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', nargs='?', type=str, default='v5',
                         help='Dataset to use [\'pascal, camvid, ade20k etc\']')
 
-    parser.add_argument('--l_rate', nargs='?', type=float, default=0.0002,
+    parser.add_argument('--l_rate', nargs='?', type=float, default=2*1e-4,
                         help='Learning Rate')
 
     parser.add_argument('--resume', nargs='?', type=str, default=None,
@@ -112,15 +112,15 @@ if __name__ == '__main__':
     parser.add_argument('--output-path', default='./flat/', type=str,
                         help='the path is used to  save output --img or result.')  # GPU id ---choose the GPU id that will be used
 
-    parser.add_argument('--batch_size', nargs='?', type=int, default=6,
-                        help='Batch Size')#16
+    parser.add_argument('--batch_size', nargs='?', type=int, default=1,
+                        help='Batch Size')
 
     parser.add_argument('--schema', type=str, default='test',
                         help='train or test')
 
-    parser.set_defaults(resume='./2019-06-25 11:52:54/49/2019-06-25 11:52:54flat_img_classifyAndRegress_grey-data1024_greyV2.pkl')
+    parser.set_defaults(resume='./2019-06-25 11_52_54/49/2019-06-25 11_52_54flat_img_classifyAndRegress_grey-data1024_greyV2.pkl')
 
-    parser.add_argument('--parallel', default='3', type=list,
+    parser.add_argument('--parallel', default='0', type=list,
                         help='choice the gpu id for parallel ')
 
     args = parser.parse_args()
@@ -138,7 +138,7 @@ if __name__ == '__main__':
 
     global path, date, date_time                # if load optimizerAndLoss_verified  ,this should be changed
     date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-    date_time = time.strftime(' %H:%M:%S', time.localtime(time.time()))
+    date_time = time.strftime(' %H_%M_%S', time.localtime(time.time()))
     path = os.path.join(args.output_path, date)
     if not os.path.exists(path):
         os.makedirs(path)

@@ -12,8 +12,9 @@ import re
 import warnings
 from network import ResnetDilatedRgressAndClassifyV2v6v4c1GN
 import utils as utils
-from perturbed_dataset import PerturbedDatastsForRegressAndClassify_pickle_color_v2C1
+from dataloader import PerturbedDatastsForRegressAndClassify_pickle_color_v2C1
 from loss import Losses
+from torch.autograd import Variable
 
 def train(args):
     global _re_date
@@ -55,7 +56,7 @@ def train(args):
     if args.optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.8, weight_decay=1e-12)
     elif args.optimizer == 'adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.l_rate, weight_decay=1e-10)     # 1e-12
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.l_rate, weight_decay=1e-12)     # 1e-12
     else:
         assert 'please choice optimizer'
         exit('error')
@@ -63,7 +64,7 @@ def train(args):
     if args.resume is not None:
         if os.path.isfile(args.resume):
             print("Loading model and optimizer from checkpoint '{}'".format(args.resume))
-            checkpoint = torch.load(args.resume)
+            checkpoint = torch.load(args.resume, map_location='cuda:0')
 
             model.load_state_dict(checkpoint['model_state'])
             optimizer.load_state_dict(checkpoint['optimizer_state'])
@@ -98,7 +99,7 @@ def train(args):
     
     if args.schema == 'train':
         trainloader = FlatImg.loadTrainData(data_split='train', is_shuffle=True)
-        FlatImg.loadValidateAndTestData(is_shuffle=True, sub_dir=test_shrink_sub_dir)
+        FlatImg.loadValidateAndTestData(is_shuffle=True, sub_dir=data_path_validate)
         trainloader_len = len(trainloader)
 
         for epoch in range(epoch_start, args.n_epoch):
@@ -248,12 +249,12 @@ if __name__ == '__main__':
     parser.add_argument('--img_shrink', nargs='?', type=int, default=None,
                         help='short edge of the input image')
 
-    parser.add_argument('--n_epoch', nargs='?', type=int, default=300,
+    parser.add_argument('--n_epoch', nargs='?', type=int, default=100,
                         help='# of the epochs')
 
     parser.add_argument('--optimizer', type=str, default='adam',
                         help='optimization')
-    parser.add_argument('--l_rate', nargs='?', type=float, default=0.0002,
+    parser.add_argument('--l_rate', nargs='?', type=float, default=2*1e-4,
                         help='Learning Rate')
 
     parser.add_argument('--resume', nargs='?', type=str, default=None,
@@ -275,20 +276,19 @@ if __name__ == '__main__':
                         help='the path is used to  save output --img or result.')  # GPU id ---choose the GPU id that will be used
 
     parser.add_argument('--batch_size', nargs='?', type=int, default=6,
-                        help='Batch Size')#16
+                        help='Batch Size')
 
-    parser.add_argument('--schema', type=str, default='test',
+    parser.add_argument('--schema', type=str, default='train',
                         help='train or test')
 
-    parser.set_defaults(resume='./2019-06-25 11:52:54/49/2019-06-25 11:52:54flat_img_classifyAndRegress_grey-data1024_greyV2.pkl')
+    # parser.set_defaults(resume='./2019-06-25 11_52_54/49/2019-06-25 11_52_54flat_img_classifyAndRegress_grey-data1024_greyV2.pkl')
 
-    parser.add_argument('--parallel', default='3', type=list,
+    parser.add_argument('--parallel', default='0', type=list,
                         help='choice the gpu id for parallel ')
 
     args = parser.parse_args()
 
     if args.resume is not None:
-        # args.resume = os.path.join(os.path.abspath(os.path.dirname(__file__)), args.resume)
         if not os.path.isfile(args.resume):
             raise Exception(args.resume+' -- no find')
             
@@ -300,7 +300,7 @@ if __name__ == '__main__':
 
     global path, date, date_time                # if load optimizerAndLoss_verified  ,this should be changed
     date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-    date_time = time.strftime(' %H:%M:%S', time.localtime(time.time()))
+    date_time = time.strftime(' %H_%M_%S', time.localtime(time.time()))
     path = os.path.join(args.output_path, date)
     # _re_date = None
 

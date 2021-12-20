@@ -41,7 +41,7 @@ class Losses(object):
         mask_9 = mask / 9
         loss_local = torch.sum(torch.abs(F.conv2d(i_t, self.kernel, padding=1, groups=2)*mask_9 - i_t*mask)) / (torch.sum(mask_9)*2)
 
-        return loss_l1*0.1, loss_local*0.1, loss_CS*0.5
+        return loss_l1*0.1, loss_local*0.01, loss_CS*0.05
       
     def loss_fn_binary_cross_entropy_with_logits(self, input, target):
         return F.binary_cross_entropy_with_logits(input, target, size_average=self.classify_size_average)

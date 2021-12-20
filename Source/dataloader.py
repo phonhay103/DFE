@@ -12,7 +12,7 @@ import cv2
 
 from torch.utils import data
 def getDatasets(dir):
-	if not os.path.isfile(dir):
+	if not os.path.isdir(dir):
             raise Exception(dir+' -- path no find')
 	return os.listdir(dir)
 
@@ -63,9 +63,7 @@ class PerturbedDatastsForRegressAndClassify_pickle_color_v2C1(data.Dataset):
 
 		if self.split == 'test':
 			img_file_list = getDatasets(os.path.join(self.root))
-
-			self.images[self.split] = sorted(img_file_list, key=lambda num: (
-			int(re.match(r'(\d+)_(\d+)( copy.png)', num, re.IGNORECASE).group(1)), int(re.match(r'(\d+)_(\d+)( copy.png)', num, re.IGNORECASE).group(2))))
+			self.images[self.split] = img_file_list
 		elif self.split in datasets:
 			img_file_list = []
 			img_file_list_ = getDatasets(os.path.join(self.root))

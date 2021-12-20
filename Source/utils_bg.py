@@ -80,14 +80,9 @@ class SaveFlatImage(object):
         process_pool.join()
 
     def flatByRegressWithClassiy_triangular_v2_RGB(self, perturbed_label, perturbed_label_classify, im_name, epoch, scheme='validate', is_scaling=False, perturbed_img=None):
-        # if self.preproccess:
-        #     perturbed_label[np.sum(perturbed_label, 2) != -2] *= 10
-        # perturbed_label = cv2.GaussianBlur(perturbed_label, (3, 3), 0)
-        # perturbed_label = cv2.blur(perturbed_label, (13, 13))
-        # perturbed_label = cv2.GaussianBlur(perturbed_label, (5, 5), 0)
-        # perturbed_label_backups = perturbed_label.copy()
-        # perturbed_label_classify = np.around(cv2.GaussianBlur(perturbed_label_classify.astype(np.float32), (33, 33), 0)).astype(np.uint8)
-
+        ############################## TODO
+        p = perturbed_label_classify
+        ############################## TODO
 
         if (scheme == 'test' or scheme == 'eval') and is_scaling:
             perturbed_img_path = self.perturbed_test_img_path + im_name
@@ -273,8 +268,14 @@ class SaveFlatImage(object):
             img_figure = np.concatenate(
                 (perturbed_img, flat_img, groun_truth), axis=1)
             '''
-            img_figure = np.concatenate(
-                (perturbed_img, flat_img), axis=1)
+            ############################## TODO
+            p[p == 1] = 255
+            p[p == 0] = 122
+            # p = np.expand_dims(p, axis=-1)
+            p = np.array([p, p, p]).transpose(1, 2, 0)
+            ############################## TODO
+            # img_figure = np.concatenate((perturbed_img, flat_img), axis=1)
+            img_figure = np.concatenate((perturbed_img, p, flat_img), axis=1) # TODO
 
             i_path = os.path.join(self.path, self.date + self.date_time + ' @' + self._re_date,
                                   str(epoch)) if self._re_date is not None else os.path.join(self.path, self.date + self.date_time, str(epoch))
@@ -285,6 +286,7 @@ class SaveFlatImage(object):
 
             im_name = im_name.replace('gw', 'png')
             cv2.imwrite(i_path + '/' + im_name, img_figure)
+        
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -580,7 +582,7 @@ class FlatImg(object):
 
                             outputs, outputs_classify = self.model(images_val, is_softmax=True)
                             outputs_classify = outputs_classify.squeeze(1)
-
+                            
                             pred_regress = outputs.data.cpu().numpy().transpose(0, 2, 3, 1)
                             # pred_classify = outputs_classify.data.max(1)[1].cpu().numpy()       #     ==outputs.data.argmax(dim=0).cpu().numpy()
                             pred_classify = outputs_classify.data.round().int().cpu().numpy()  # (4, 1280, 1024)  ==outputs.data.argmax(dim=0).cpu().numpy()
