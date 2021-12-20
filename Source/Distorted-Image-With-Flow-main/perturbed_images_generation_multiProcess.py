@@ -1,6 +1,7 @@
 '''
 GuoWang xie
 set up :2018-3-8
+
 -- data1024_greyV2
 '''
 
@@ -240,7 +241,7 @@ class perturbed(object):
 
 	def save_img(self, m, n, fold_curve='fold', repeat_time=4, relativeShift_position='relativeShift_v2'):
 		origin_img = cv2.imread(self.path, flags=cv2.IMREAD_COLOR)
-
+	
 		# img_shrink, base_img_shrink = 512, 512
 		# base_img_shape = [base_img_shrink, int(math.floor(base_img_shrink//2*1.8))]
 		# clip_add_margin = [base_img_shrink//4, int(math.floor(base_img_shrink//8*1.8))]		# [128, int(round(64*1.8))]
@@ -264,18 +265,19 @@ class perturbed(object):
 		# save_img_shape = [768, 576]		# 320
 		# save_img_shape = [640, 480]		# 320
 		# save_img_shape = [512, 384]		# 320
-		save_img_shape = [512*2, 480*2]		# 320
+		# save_img_shape = [512*2, 480*2]		# 320
 		# save_img_shape = [512, 480]		# 320
+		save_img_shape = [288, 288]
 		reduce_value = np.random.choice([8*2, 16*2, 24*2, 32*2, 40*2, 48*2], p=[0.1, 0.2, 0.4, 0.1, 0.1, 0.1])
 		# reduce_value = np.random.choice([16, 24, 32, 40, 48, 64], p=[0.01, 0.1, 0.2, 0.4, 0.2, 0.09])
 		base_img_shrink = save_img_shape[0] - reduce_value
 
 		# enlarge_img_shrink = [1024, 768]
 		# enlarge_img_shrink = [896, 672]		# 420
-		enlarge_img_shrink = [896*2, 768*2]		# 420
+		# enlarge_img_shrink = [896*2, 768*2]		# 420
 		# enlarge_img_shrink = [896, 768]		# 420
 		# enlarge_img_shrink = [768, 576]		# 420
-		# enlarge_img_shrink = [640, 480]		# 420
+		enlarge_img_shrink = [640, 480]		# 420
 
 		''''''
 		im_lr = origin_img.shape[0]
@@ -284,7 +286,6 @@ class perturbed(object):
 
 		reduce_value_v2 = np.random.choice([4*2, 8*2, 16*2, 24*2, 28*2, 32*2, 48*2, 64*2], p=[0.1, 0.1, 0.2, 0.2, 0.2, 0.1, 0.08, 0.02])
 		# reduce_value_v2 = np.random.choice([16, 24, 28, 32, 48, 64], p=[0.01, 0.1, 0.2, 0.3, 0.25, 0.14])
-
 		if im_lr > im_ud and aspect_ratio > 1.2:
 			im_ud = min(int(im_ud / im_lr * base_img_shrink), save_img_shape[1] - reduce_value_v2)
 			im_lr = save_img_shape[0] - reduce_value
@@ -294,7 +295,6 @@ class perturbed(object):
 			im_ud = base_img_shrink
 
 		self.origin_img = cv2.resize(origin_img, (im_ud, im_lr), interpolation=cv2.INTER_CUBIC)
-
 		perturbed_bg_ = getDatasets(self.bg_path)
 		perturbed_bg_img_ = self.bg_path+random.choice(perturbed_bg_)
 		perturbed_bg_img = cv2.imread(perturbed_bg_img_, flags=cv2.IMREAD_COLOR)
@@ -355,9 +355,8 @@ class perturbed(object):
 			alpha_perturbed = random.randint(80, 160) / 100
 			is_normalizationFun_mixture = False  # self.is_perform(0.01, 0.99)
 
-
 		for repeat_i in range(repeat_time):
-
+			print('repeat_i:', repeat_i)
 			synthesis_perturbed_img = np.full_like(self.synthesis_perturbed_img, 257, dtype=np.int16)
 			synthesis_perturbed_label = np.zeros_like(self.synthesis_perturbed_label)
 
@@ -736,6 +735,7 @@ class perturbed(object):
 						self.synthesis_perturbed_label = np.zeros_like(self.synthesis_perturbed_label)
 						synthesis_perturbed_label_clip_resize = cv2.resize(synthesis_perturbed_label_clip_resize, (synthesis_perturbed_img_clip_resize_shape_[1]+mesh_1_, synthesis_perturbed_img_clip_resize_shape_[0]+mesh_0_), interpolation=cv2.INTER_NEAREST)
 						self.synthesis_perturbed_label[synthesis_perturbed_img_clip_resize_l:self.new_shape[0]-synthesis_perturbed_img_clip_resize_r, synthesis_perturbed_img_clip_resize_u:self.new_shape[1]-synthesis_perturbed_img_clip_resize_d, :] = synthesis_perturbed_label_clip_resize
+
 			'''
 			''''''
 			if np.sum(self.synthesis_perturbed_img[:, 0]) != 771 * self.new_shape[0] or np.sum(self.synthesis_perturbed_img[:, self.new_shape[1]-1]) != 771 * self.new_shape[0] or \
@@ -804,10 +804,13 @@ class perturbed(object):
 				# grey = np.around(self.synthesis_perturbed_img[:, :, 0] * 0.2989 + self.synthesis_perturbed_img[:, :, 1] * 0.5870 + self.synthesis_perturbed_img[:, :, 0] * 0.1140).astype(np.int16)
 				# synthesis_perturbed_grey = np.concatenate((grey.reshape(self.new_shape[0], self.new_shape[1], 1), label), axis=2)
 				synthesis_perturbed_color = np.concatenate((self.synthesis_perturbed_img, label), axis=2)
-				cv2.imwrite(self.save_path + f"png/{perfix_}_{fold_curve}.png", self.synthesis_perturbed_img)
-				# with open(self.save_path+'color/'+perfix_+'_'+fold_curve+'.gw', 'wb') as f:
-				# 	pickle_perturbed_data = pickle.dumps(synthesis_perturbed_color)
-				# 	f.write(pickle_perturbed_data)
+				print(self.synthesis_perturbed_img.shape)
+				print(label.shape)
+				print(synthesis_perturbed_color.shape)
+				with open(self.save_path+'color/'+perfix_+'_'+fold_curve+'.gw', 'wb') as f:
+					pickle_perturbed_data = pickle.dumps(synthesis_perturbed_color)
+					f.write(pickle_perturbed_data)
+
 
 		if not is_save_perturbed:
 			print('save error')
@@ -824,6 +827,19 @@ class perturbed(object):
 		# draw_distance_hotmap(curve_d)
 		# draw_distance_hotmap(omega_perturbed)
 		# draw_distance_hotmap(omega_curve)
+
+def multiThread(m, n, img_path_, bg_path_, save_path, save_suffix):
+	saveFold = perturbed(img_path_, bg_path_, save_path, save_suffix)
+	saveCurve = perturbed(img_path_, bg_path_, save_path, save_suffix)
+
+	repeat_time = min(max(round(np.random.normal(10, 3)), 5), 16)
+	fold = threading.Thread(target=saveFold.save_img, args=(m, n, 'fold', repeat_time, 'relativeShift_v2'), name='fold')
+	curve = threading.Thread(target=saveCurve.save_img, args=(m, n, 'curve', repeat_time, 'relativeShift_v2'), name='curve')
+
+	fold.start()
+	curve.start()
+	curve.join()
+	fold.join()
 
 def xgw(args):
 	path = args.path
@@ -843,8 +859,8 @@ def xgw(args):
 	#
 	#if not os.path.exists(save_path + 'grey/'):
 	#	os.makedirs(save_path + 'grey/')
-	# if not os.path.exists(save_path + 'color/'):
-	# 	os.makedirs(save_path + 'color/')
+	if not os.path.exists(save_path + 'color/'):
+		os.makedirs(save_path + 'color/')
 
 	# if not os.path.exists(save_path + 'grey_im/'):
 	# 	os.makedirs(save_path + 'grey_im/')
@@ -861,7 +877,6 @@ def xgw(args):
 	save_suffix = str.split(args.path, '/')[-2]
 	
 	all_img_path = getDatasets(path)
-	all_bgImg_path = getDatasets(bg_path)
 	global begin_train
 	begin_train = time.time()
 
@@ -869,27 +884,30 @@ def xgw(args):
 	for m, img_path in enumerate(all_img_path):
 		for n in range(args.sys_num):
 			img_path_ = path+img_path
-			bg_path_ = bg_path+random.choice(all_bgImg_path)+'/'
 
 			for m_n in range(10):
 				try:
-					saveFold = perturbed(img_path_, bg_path_, save_path, save_suffix)
-					saveCurve = perturbed(img_path_, bg_path_, save_path, save_suffix)
-					# repeat_time = min(max(round(np.random.normal(8, 4)), 1), 12)
-					repeat_time = 10 
-					process_pool.apply_async(func=saveFold.save_img, args=(m, n, 'fold', repeat_time, 'relativeShift_v2'))
-					process_pool.apply_async(func=saveCurve.save_img, args=(m, n, 'curve', repeat_time, 'relativeShift_v2'))
+					saveFold = perturbed(img_path_, bg_path, save_path, save_suffix)
+					saveCurve = perturbed(img_path_, bg_path, save_path, save_suffix)
+
+					repeat_time = min(max(round(np.random.normal(8, 4)), 1), 12) 
+					# process_pool.apply_async(func=saveFold.save_img, args=(m, n, 'fold', repeat_time, 'relativeShift_v2'))
+					print('repeat_time:', repeat_time)
+					saveFold.save_img(m, n, 'fold', repeat_time, 'relativeShift_v2')
+					exit()
+					# repeat_time = min(max(round(np.random.normal(6, 4)), 1), 10)
+					# process_pool.apply_async(func=saveCurve.save_img, args=(m, n, 'curve', repeat_time, 'relativeShift_v2'))
 
 				except BaseException as err:
 					print(err)
 					continue
 				break
-			# print('end')
 
 	process_pool.close()
 	process_pool.join()
 
 if __name__ == '__main__':
+
 	parser = argparse.ArgumentParser(description='Hyperparams')
 	parser.add_argument('--path',
 						default='validate', type=str,
@@ -901,7 +919,7 @@ if __name__ == '__main__':
 	parser.add_argument('--output_path',
 						default=None, type=str,
 						help='the path of output img.')
-
+	# parser.set_defaults(output_path='test')
 	parser.add_argument('--count_from', '-p', default=0, type=int,
 						metavar='N', help='print frequency (default: 10)')  # print frequency
 
@@ -910,7 +928,4 @@ if __name__ == '__main__':
 	parser.add_argument('--sys_num', default=7, type=int)
 
 	args = parser.parse_args()
-	a = time.time()
 	xgw(args)
-	b = time.time()
-	print(f"Time: {b-a}")
